@@ -1,22 +1,30 @@
 from datetime import datetime
-from flask_wtf import Form
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
+#from flask_wtf import Form
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, AnyOf, URL
 
-class ShowForm(Form):
+class ShowForm(FlaskForm):
     artist_id = StringField(
         'artist_id'
     )
     venue_id = StringField(
         'venue_id'
     )
-    start_time = DateTimeField(
+    '''start_time = DateTimeField(
         'start_time',
         validators=[DataRequired()],
         default= datetime.today()
-    )
+    ) '''
+    sstart_time = SelectField(
+        'sstart_time', 
+        coerce=int
+        )
+    update_time_list = SubmitField(label='Fill availability list')
 
-class VenueForm(Form):
+
+   
+class VenueForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
     )
@@ -79,9 +87,7 @@ class VenueForm(Form):
             ('WY', 'WY'),
         ]
     )
-    address = StringField(
-        'address', validators=[DataRequired()]
-    )
+  
     phone = StringField(
         'phone'
     )
@@ -128,7 +134,7 @@ class VenueForm(Form):
 
 
 
-class ArtistForm(Form):
+class ArtistForm(FlaskForm):
     name = StringField(
         'name', validators=[DataRequired()]
     )
@@ -236,4 +242,18 @@ class ArtistForm(Form):
     seeking_description = StringField(
             'seeking_description'
      )
+
+    available_time = DateTimeField(
+        'available_time',
+        validators=[DataRequired()],
+        default= datetime.today())
+
+    booked = BooleanField( 
+        'booked' ,
+        default=False)
+        
+   
+    add_time = SubmitField(label='Add Availability')
+    
+
 

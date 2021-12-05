@@ -3,7 +3,42 @@
 {% block content %}
   <div class="form-wrapper">
     <form class="form" method="post" action="/artists/{{artist.id}}/edit">
+    
+  </form>
+    <form class="form" method="post" action="/artists/{{artist.id}}/edit">
       <h3 class="form-heading">Edit artist <em>{{ artist.name }}</em></h3>
+      <section>
+        <div class="form-inline">
+          <div class="form-group">  {{ form.available_time(class_ = 'form-control', placeholder='YYYY-MM-DD HH:MM', autofocus = true) }} </div>
+          <div class="form-group"> 
+            {{ form.add_time(class_ = 'form-control') }} 
+        </div>
+        </div>
+        <div>
+          {% if availabilities  %}
+          <ul class="list-wrapper">
+            
+            {% for availability in availabilities %}
+            <li>
+                <div class="item">
+                  
+                  <h5>{{ availability.available_time }}</h5>
+                  
+                </div>
+                <a href="/availability/{{ availability.id }}/{{artist.id}}" class="delete-link" >Delete availability</a>
+            </li>
+            {% endfor %}
+          </ul>
+
+      
+
+          {% else %}
+              There are no configured availibility times yet.
+          {% endif %}
+        </div>
+       
+      </section>
+
       <div class="form-group">
         <label for="name">Name</label>
         {{ form.name(class_ = 'form-control', autofocus = true) }}

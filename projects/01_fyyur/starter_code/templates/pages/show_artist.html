@@ -2,6 +2,29 @@
 {% block title %}{{ artist.name }} | Artist{% endblock %}
 {% block content %}
 <div class="row">
+	<section>
+		<h1 class="monospace">
+			Availabilities 
+		</h1>
+	<div>
+		{% if availabilities  %}
+		<ul class="items">
+		  {% for availability in availabilities %}
+		  <li>
+			
+			  <div class="item">
+				<h5>{{ availability.available_time }}</h5>
+			  </div>
+		  
+		  </li>
+		  {% endfor %}
+		</ul>
+		{% else %}
+		There are no configured availibility times yet.
+	{% endif %}
+	  </div>
+	</section>
+
 	<div class="col-sm-6">
 		<h1 class="monospace">
 			{{ artist.name }}

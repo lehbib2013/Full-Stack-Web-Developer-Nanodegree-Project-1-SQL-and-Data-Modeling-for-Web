@@ -8,6 +8,7 @@
         <label for="artist_id">Artist ID</label>
         <small>ID can be found on the Artist's Page</small>
         {{ form.artist_id(class_ = 'form-control', autofocus = true) }}
+        
       </div>
       <div class="form-group">
         <label for="venue_id">Venue ID</label>
@@ -15,9 +16,12 @@
         {{ form.venue_id(class_ = 'form-control', autofocus = true) }}
       </div>
       <div class="form-group">
-          <label for="start_time">Start Time</label>
-          {{ form.start_time(class_ = 'form-control', placeholder='YYYY-MM-DD HH:MM', autofocus = true) }}
-        </div>
+        <label for="start_time">Start Time</label>
+        
+        {{ form.sstart_time(class_ = 'form-control', autofocus = true) }}
+          
+           {{ form.update_time_list(class_ = 'form-control', placeholder='YYYY-MM-DD HH:MM', autofocus = true) }}
+      </div>
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
