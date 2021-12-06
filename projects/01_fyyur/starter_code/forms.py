@@ -91,6 +91,9 @@ class VenueForm(FlaskForm):
     phone = StringField(
         'phone'
     )
+    address = StringField(
+        'address'
+    )
     image_link = StringField(
         'image_link'
     )
