@@ -22,6 +22,7 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 moment = Moment(app)
+
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
@@ -82,17 +83,18 @@ def venues():
       }]
     }]
     '''
+  # send query via sqlalchemy to database for state,city distinct pairs to use later  
   state_cities = db.session.query(Venue.city, Venue.state).distinct(Venue.city, Venue.state)
   print(state_cities);
   data = []
   for item in state_cities:
 
-        # Querying venues and filter them based on area (city, venue)
+        # Querying venues and filter them based on area (city, venue) pair value
         venues_list = Venue.query.filter(Venue.state == item.state).filter(Venue.city == item.city).all()
 
         venue_infos = []
 
-        # Creating venues' response
+        # Creating venues' response as required by commented above requirement
         for venue in venues_list:
             venue_infos.append({
                 'id': venue.id,
@@ -150,11 +152,12 @@ def show_venue(venue_id):
                                                                                                 Artist.image_link,
                                                                                                 Show.start_time).all()
 
+  # flter Shows by venue_id and joins with Artist to pickup other fields like name,image_link of artist
   upcoming = db.session.query(Show).filter(Show.venue_id == venue_id).filter(
         Show.start_time > datetime.now()).join(Artist, Show.artist_id == Artist.id).add_columns(Artist.id, Artist.name,
                                                                                                 Artist.image_link,
                                                                                                 Show.start_time).all()
-
+  # forming the requeted json format as specified in below commented reauirement
   upcoming_shows = []
 
   past_shows = []
@@ -351,7 +354,7 @@ def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
   error = False
-  print('hello deleting')
+  #print('hello deleting')
   try:
     Venue.query.filter_by(id=venue_id).delete()
     db.session.commit()
@@ -575,7 +578,9 @@ def edit_artist(artist_id):
   current_artist = Artist.query.get(artist_id)
   #form_availability.artist_id.data = artist_id;
   if current_artist: 
+    # get availabilities times by sqlalchemy for current artist to return back to user
     availabilities = db.session.query(Availability).filter(Availability.artist_id == artist_id).all()
+    # fill the form by current values to send over reauest so the user can change if desired
     form.name.data = current_artist.name
     form.city.data = current_artist.city
     form.state.data = current_artist.state
@@ -590,11 +595,13 @@ def edit_artist(artist_id):
   return render_template('forms/edit_artist.html', form=form, artist=current_artist, availabilities= availabilities)
 
 @app.route('/availability/<int:availability_id>/<int:artist_id>', methods=['GET'])
-def delete_availability(availability_id,artist_id):
+def delete_availability(availability_id, artist_id):
   form = ArtistForm()
+  # read  current deleted avialability to be deleted
   current_availability = db.session.query(Availability).filter(Availability.id == availability_id).first()
   db.session.delete(current_availability)
   db.session.commit()
+  # get updated list after deleting to send back
   availabilities = db.session.query(Availability).filter(Availability.artist_id == artist_id).all()
   edited_artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
   return render_template('forms/edit_artist.html', form=form, artist=edited_artist, availabilities= availabilities)
@@ -609,15 +616,17 @@ def edit_artist_submission(artist_id):
     error = False 
     redirect_info = True
     form = ArtistForm()
-    
+    # get list of availabilities for this artist  and current edited artist
     availabilities = db.session.query(Availability).filter(Availability.artist_id == artist_id).all()
     edited_artist = db.session.query(Artist).filter(Artist.id == artist_id).first()
       
     try:
+      #  check if forms was submitted by add_time click button: so we have to add a new availability and link it with current artist
       if form.add_time.data == True:
         print('herrre')
-        
-        form.booked.data = True;
+        # mark current time as non bocked yet, so it will available to use by venu later when adding a show if desired
+        # if availability already booked , it will not shows in list of availabilities on artist editing page.
+        form.booked.data = False;
         availability_to_add = Availability(available_time=form.available_time.data,
                                      booked = False,
                                      artist_id = artist_id)
@@ -627,7 +636,7 @@ def edit_artist_submission(artist_id):
         availabilities = db.session.query(Availability).filter(Availability.artist_id == artist_id).all()
         return render_template('forms/edit_artist.html', form=form, artist=edited_artist, availabilities= availabilities)
       
-
+      # check if the form was submitted by bootm submit button so we will save all artist fields into database
       if form.add_time.data == False:
       
         edited_artist.name = form.name.data
@@ -639,6 +648,7 @@ def edit_artist_submission(artist_id):
         edited_artist.image_link = form.image_link.data,
         edited_artist.facebook_link = form.facebook_link.data,
         edited_artist.website_link = form.website_link.data,
+        # check if seeking_venu is included 
         if 'seeking_venue' in request.form :
          edited_artist.seeking_venue = True
         else :
@@ -848,6 +858,7 @@ def shows():
     "start_time": "2035-04-15T20:00:00.000Z"
    }]
   '''
+  # joins Show with Artist and venue to render full infoemation about the show
   data = Show.query.join(Artist, Artist.id == Show.artist_id).join(Venue, Venue.id == Show.venue_id).all()
 
   response = []
@@ -880,16 +891,20 @@ def create_show_submission():
   # TODO: insert form data as a new Show record in the db, instead
   form = ShowForm()
   try:
+    # check if user requests to fill times list on the form  to choose right vailable time.
 
     if form.update_time_list.data == True:
+      # read not yet booked availabilities for current artist
       availabilities = db.session.query(Availability).filter(Availability.artist_id == form.artist_id.data,Availability.booked == False).all()
       # forming list of tuples for combobox of availabilities
+      # form a list of times to use on form dropdown list by applying on choices
       availabilities_list = [(av.id, av.available_time) for av in availabilities]
       form.sstart_time.choices = availabilities_list
       return render_template('forms/new_show.html', form=form)
-    
+    # check if form submitted to adding new show
     if form.update_time_list.data == False:
       print(form.sstart_time.id)
+      # read choosed(selected) availability and link it to a show before commit
       availability = db.session.query(Availability).get(form.sstart_time.data)
       availability.booked =True
       db.session.add(availability)
